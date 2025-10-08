@@ -3,13 +3,9 @@
 import sys
 import json
 from .core.ffs import Ffs
-import .realisation.parameters as parameters
-import .realisation.executors as executors
-import .realisation.stopcriteria as stopcriteria
-import .realisation.disturbances as disturbances
-import .realisation.integrators as integrators
+from .realisation import executors, parameters, stopcriteria, disturbances, integrators
 from .readlammps import read_lammps
-from pathlib import path
+from pathlib import Path
 
 def load_steps(data):
     return data
@@ -27,16 +23,16 @@ def load_parameter(data):
     return load_class(parameters, data["type"], data["arguments"])
 
 def load_executor(data):
-    integrators = []
+    integrs = []
     gl = data["global"]
     for i in data["integrator"]["individual"]:
-        integrators.append(load_class(integrators, gl["type"],
+        integrs.append(load_class(integrators, gl["type"],
             gl["arguments"] | i,
         ))
     return load_class(
         executors,
         data["type"],
-        data["arguments"] | { "integrators": integrators }
+        data["arguments"] | { "integrators": integrs }
     )
 
 def load_stopcriterion(data):
