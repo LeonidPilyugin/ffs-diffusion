@@ -10,11 +10,6 @@ class Integrator(ABC):
     ) -> State:
         pass
 
-    @property
-    @abstractmethod
-    def resource_index(self):
-        pass
-
     @abstractmethod
     def set_state(self, state: State):
         pass
