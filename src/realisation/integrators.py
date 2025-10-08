@@ -14,7 +14,6 @@ class OpenmmIntegrator(Integrator):
     ):
         self.integrator = getattr(openmm, openmm_type)(*openmm_arguments)
         self.platform = platform
-        self.potentials = potentials
 
         self.length_unit = openmm.unit.angstrom
         self.time_unit = openmm.unit.picosecond
@@ -22,6 +21,16 @@ class OpenmmIntegrator(Integrator):
         self.energy_unit = openmm.unit.kilojoule_per_mole
         self.mass_unit = openmm.unit.atom_mass_units
         self.force_unit = self.energy_unit / self.length_unit
+
+        self.potentials = []
+        self.potential_data = []
+
+        for p in potentials:
+            with open(p["path"]) as f:
+                self.potentials.append(
+                    openmm.XmlSerializer.deserialize(f.read())
+                )
+                self.potential_data.append(potential_data.get("particles", None))
 
     def set_state(self, state: State):
         system = openmm.System()
@@ -38,8 +47,8 @@ class OpenmmIntegrator(Integrator):
             self.potentials, self.potential_data
         ):
             if hasattr(force, "addParticle"):
-                for i in range(particles.get_size()):
-                    force.addParticle(*data[str(types[i])])
+                for i in range(state.positions.shape()[0]):
+                    force.addParticle(*self.potential_data[str(state.types[i])])
             system.addForce(force)
 
         p = openmm.Platform.getPlatformByName(self.platform["name"])
