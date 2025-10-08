@@ -1,0 +1,59 @@
+[ffs]
+id = "simulation.ffs.test"
+comment = ""
+environment = "ffs"
+
+[ffs.executor]
+type = "Executor"
+arguments = { }
+[ffs.executor.integrator.global]
+type = "OpenmmIntegrator"
+
+[ffs.executor.integrator.global.arguments]
+openmm_type = "LangevinIntegrator"
+openmm_arguments = [ 2200.0, 0.01, 0.001 ]
+
+[[ffs.executor.integrator.global.arguments.potentials]]
+path = "/path/to/potential.xml"
+particles = { 1 = [[1]], 2 = [[2]], 3 = [[3]] }
+
+[[ffs.executor.integrator.global.arguments.potentials]]
+path = "/path/to/potential2.xml"
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "0" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "1" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "2" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "3" }
+
+
+[ffs.parameter]
+type = "Parameter"
+[ffs.parameter.arguments]
+index = 0
+
+[ffs.state]
+path = "/path/to/lammpsdump"
+
+[ffs.stopcriterion]
+type = "StopCriterion"
+[ffs.stopcriterion.arguments]
+val = 4
+
+[ffs.barriers]
+barriers = [0.0, 0.1, 0.4, 1.0]
+
+[ffs.disturbance]
+type = "VelocityDisturbance"
+[ffs.disturbance.arguments]
+seed = 4
+
+[ffs.steps]
+run = 1000
+mean = 1000
