@@ -7,4 +7,14 @@ class Parameter(SpAlgorithm.Parameter):
         self.index = index
 
     def estimate(self, state: State) -> float:
-        return np.sum(state.positions, axis=0)[self.index]
+        def wrap_periodic(pos):
+            diag = np.diag(state.cell)
+            lo = state.origin
+            hi = lo + diag
+            return np.fmod(
+                pos + diag * np.ceil((lo - np.min(pos, axis=0)) / diag + 1),
+                diag
+            )
+
+
+        return np.sum(wrap_periodic(state.positions), axis=0)[self.index]
