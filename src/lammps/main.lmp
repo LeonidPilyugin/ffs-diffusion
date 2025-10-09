@@ -10,6 +10,7 @@ variable bz equal 6
 variable temperature equal 900
 variable random_seed equal 4
 variable radius equal 9
+variable offset equal $(-v_lp / sqrt(2))
 
 region BOX block 0 $(v_lp * v_bx) 0 $(v_lp * v_by) 0 $(v_lp * v_bz)
 create_box 2 BOX
@@ -26,9 +27,9 @@ create_atoms 1 region BOX
 pair_style eam/alloy
 pair_coeff * * AlHe_Men_exp6.eam Al He
 
-region BUBBLE sphere $((xlo + xhi) / 2) $((ylo + yhi) / 2) $((zlo + zhi) / 2) ${radius} units box
+region BUBBLE sphere $((xlo + xhi) / 2 + v_offset) $((ylo + yhi) / 2) $((zlo + zhi) / 2) ${radius} units box
 delete_atoms region BUBBLE
 
 velocity all create ${temperature} ${random_seed}
 
-write_dump all custom ./system.lammpsdump id type mass x y z vx vy vz
+write_dump all custom ./system2.lammpsdump id type mass x y z vx vy vz

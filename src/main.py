@@ -6,12 +6,37 @@ from .core.ffs import Ffs
 from .realisation import executors, parameters, stopcriteria, disturbances, integrators
 from .readlammps import read_lammps
 from pathlib import Path
+import random
 
 def load_steps(data):
     return data
 
 def load_state(data):
-    return read_lammps(data["path"])
+    state =  read_lammps(data["path"])
+
+    radius = data["radius"]
+    random.seed(data["seed"])
+    trsh = data["trsh"]
+
+    lx = state.cell[0,0]
+    ly = state.cell[1,1]
+    lz = state.cell[2,2]
+    ox, oy, oz = state.origin
+
+    for i in range(len(state.masses)):
+        x, y, z = state.positions[i,:]
+
+        if all([
+            abs(x - ox - lx / 2) > radius,
+            abs(y - oy - ly / 2) > radius,
+            abs(z - oz - lz / 2) > radius,
+            random.random() < trsh
+        ]):
+            state.masses[i] = 0.0
+
+
+
+    return state
 
 def load_barriers(data):
     return data["barriers"]

@@ -31,6 +31,9 @@ index = 0
 
 [ffs.state]
 path = "/home/leonid/systems/ffs/test.lammpsdump"
+radius = 9.0
+seed = 4
+trsh = 0.05
 
 [ffs.stopcriterion]
 type = "StopCriterion"
@@ -38,7 +41,12 @@ type = "StopCriterion"
 val = 4
 
 [ffs.barriers]
-barriers = [0.0, 0.1, 0.4, 1.0]
+# 63476 -- 68.649
+barriers = [
+63500,
+63600,
+63700,
+]
 
 [ffs.disturbance]
 type = "VelocityDisturbance"
@@ -46,5 +54,5 @@ type = "VelocityDisturbance"
 seed = 4
 
 [ffs.steps]
-run = 1000
+run = 50000
 mean = 1000

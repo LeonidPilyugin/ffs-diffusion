@@ -39,6 +39,7 @@ class SpAlgorithm:
 
     def next(self, state: State) -> Optional[bool]:
         now = self.parameter.estimate(state)
+        print(now)
         if now < self.bot:
             return False
         elif now > self.top:

@@ -15,6 +15,8 @@ variable bz equal 6
 variable temperature equal 900
 variable random_seed equal 4
 variable radius equal 9
+variable offset equal $(-v_lp / sqrt(2))
+variable offset equal -2.9224723266440006952
 
 region BOX block 0 $(v_lp * v_bx) 0 $(v_lp * v_by) 0 $(v_lp * v_bz)
 region BOX block 0 23.379778613152005562 0 $(v_lp * v_by) 0 $(v_lp * v_bz)
@@ -36,11 +38,11 @@ Created 768 atoms
 pair_style eam/alloy
 pair_coeff * * AlHe_Men_exp6.eam Al He
 
-region BUBBLE sphere $((xlo + xhi) / 2) $((ylo + yhi) / 2) $((zlo + zhi) / 2) ${radius} units box
-region BUBBLE sphere 11.689889306576002781 $((ylo + yhi) / 2) $((zlo + zhi) / 2) ${radius} units box
-region BUBBLE sphere 11.689889306576002781 11.689889306576002781 $((zlo + zhi) / 2) ${radius} units box
-region BUBBLE sphere 11.689889306576002781 11.689889306576002781 12.399000000000000909 ${radius} units box
-region BUBBLE sphere 11.689889306576002781 11.689889306576002781 12.399000000000000909 9 units box
+region BUBBLE sphere $((xlo + xhi) / 2 + v_offset) $((ylo + yhi) / 2) $((zlo + zhi) / 2) ${radius} units box
+region BUBBLE sphere 8.7674169799320029739 $((ylo + yhi) / 2) $((zlo + zhi) / 2) ${radius} units box
+region BUBBLE sphere 8.7674169799320029739 11.689889306576002781 $((zlo + zhi) / 2) ${radius} units box
+region BUBBLE sphere 8.7674169799320029739 11.689889306576002781 12.399000000000000909 ${radius} units box
+region BUBBLE sphere 8.7674169799320029739 11.689889306576002781 12.399000000000000909 9 units box
 delete_atoms region BUBBLE
 Deleted 177 atoms, new total = 591
 
@@ -48,6 +50,6 @@ velocity all create ${temperature} ${random_seed}
 velocity all create 900 ${random_seed}
 velocity all create 900 4
 
-write_dump all custom ./system.lammpsdump id type mass x y z vx vy vz
+write_dump all custom ./system2.lammpsdump id type mass x y z vx vy vz
 WARNING: Calling write_dump before a full system init. (src/write_dump.cpp:65)
 Total wall time: 0:00:00
