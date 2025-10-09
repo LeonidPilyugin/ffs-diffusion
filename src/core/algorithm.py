@@ -49,5 +49,5 @@ class SpAlgorithm:
         self,
         state: State
     ) -> int:
-        return self.steps
+        return self.steps["run"], self.steps["mean"]
 

@@ -24,7 +24,7 @@ def load_parameter(data):
 
 def load_executor(data):
     integrs = []
-    gl = data["global"]
+    gl = data["integrator"]["global"]
     for i in data["integrator"]["individual"]:
         integrs.append(load_class(integrators, gl["type"],
             gl["arguments"] | i,
@@ -56,7 +56,7 @@ def main():
         stopcrit=load_stopcriterion(data["ffs"]["stopcriterion"]),
         barriers=load_barriers(data["ffs"]["barriers"]),
         disturbance=load_disturbance(data["ffs"]["disturbance"]),
-        steps=load_steps(data["ffs"]["disturbance"]),
+        steps=load_steps(data["ffs"]["steps"]),
     ).start()
 
 if __name__ == "__main__":

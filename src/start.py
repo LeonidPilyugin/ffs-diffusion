@@ -13,7 +13,7 @@ if __name__ == "__main__":
     with open(sys.argv[1], "rb") as f:
         data = tomllib.load(f)
 
-    path = Path(data["ffs"]["path"])
+    path = Path.home().joinpath(*data["ffs"]["id"].split("."))
     assert not path.exists()
 
     path.mkdir(parents=True, exist_ok=True)
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     src = Path(data["ffs"]["state"]["path"])
     shutil.copy(src, path.joinpath("state").with_suffix(src.suffix))
 
-    with open(path / "decriptor.json", "w") as f:
+    with open(path / "descriptor.json", "w") as f:
         json.dump(data, f)
 
     env = data["ffs"]["environment"]
@@ -31,11 +31,14 @@ if __name__ == "__main__":
             "comment": data["ffs"]["comment"],
         },
         "backend": {
-            "backend": "UtahaPosixBackendBackend",
+            "type": "UtahaPosixBackendBackend",
         },
         "job": {
             "type": "UtahaJobsShellJob",
-            "command": f"zsh -c 'source ~/.zshrc && conda activate {env} && python3 {Path(__file__).parent.joinpath('main.py')} {sys.argv[1]}'"
+            "command": [
+                "zsh", "-c",
+                f"source ~/.zshrc && conda activate {env} && python3 {Path(__file__).parent.parent.joinpath('main.py')} {path}"
+            ],
         },
     }
 

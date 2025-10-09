@@ -1,5 +1,5 @@
-from ...core.integrator import Integrator
-from ...core.state import State
+from ..core.integrator import Integrator
+from ..core.state import State
 import openmm
 import scipy
 import numpy as np
@@ -14,6 +14,7 @@ class OpenmmIntegrator(Integrator):
     ):
         self.integrator = getattr(openmm, openmm_type)(*openmm_arguments)
         self.platform = platform
+        self._context = None
 
         self.length_unit = openmm.unit.angstrom
         self.time_unit = openmm.unit.picosecond
@@ -30,35 +31,43 @@ class OpenmmIntegrator(Integrator):
                 self.potentials.append(
                     openmm.XmlSerializer.deserialize(f.read())
                 )
-                self.potential_data.append(potential_data.get("particles", None))
+                self.potential_data.append(p.get("particles", None))
 
-    def set_state(self, state: State):
+    @property
+    def context(self):
+        if self._context is not None:
+            return self._context
+
         system = openmm.System()
         system.setDefaultPeriodicBoxVectors(
-            state.cell[0], state.cell[1], state.cell[2]
+            self.cell[0], self.cell[1], self.cell[2]
         )
-        for mass in state.masses:
+        for mass in self.masses:
             system.addParticle(mass)
-
-        self.masses = state.masses
-        self.types = state.types
 
         for force, data in zip(
             self.potentials, self.potential_data
         ):
             if hasattr(force, "addParticle"):
-                for i in range(state.positions.shape()[0]):
-                    force.addParticle(*self.potential_data[str(state.types[i])])
+                for i in range(self.masses.shape[0]):
+                    force.addParticle(*data[str(self.types[i])])
             system.addForce(force)
 
         p = openmm.Platform.getPlatformByName(self.platform["name"])
 
-        context = openmm.Context(system, self.integrator, p, self.platform)
-        context.setPositions(state.positions)
-        context.setVelocities(state.velocities)
+        self._context = openmm.Context(system, self.integrator, p, { "Precision": self.platform["Precision"], "DeviceIndex": self.platform["DeviceIndex"] })
+        return self._context
 
-        self.context = context
-        self.shape = state.shape
+    def set_state(self, state: State):
+        self._state = state
+        self.masses = state.masses
+        self.types = state.types
+        self.shape = state.positions.shape
+        self.cell = state.cell
+        self.origin = state.origin
+
+        self.context.setPositions(state.positions)
+        self.context.setVelocities(state.velocities)
 
     def nsteps(
         self,
@@ -69,8 +78,8 @@ class OpenmmIntegrator(Integrator):
 
         self.context.getIntegrator().step(n - mean_last)
 
-        positions = np.zeroes_like(self.shape)
-        velocities = np.zeroes_like(self.shape)
+        positions = np.zeros(self.shape)
+        velocities = np.zeros(self.shape)
         u = t = T = 0
         last_pos = self.context.getState({
             "getPositions": True,
@@ -78,7 +87,7 @@ class OpenmmIntegrator(Integrator):
 
         for _ in range(mean_last):
             self.context.getIntegrator().step(1)
-            state = openmm_object.context.getState(
+            state = self.context.getState(
                 getPositions=True,
                 getVelocities=True,
                 enforcePeriodicBox=False,
@@ -91,7 +100,7 @@ class OpenmmIntegrator(Integrator):
             velocities = np.add(velocities, v.value_in_unit(self.velocity_unit))
             u += state.getPotentialEnergy().value_in_unit(self.energy_unit)
             t += state.getKineticEnergy().value_in_unit(self.energy_unit)
-            T += (masses * np.sum(v.value_in_unit(openmm.unit.meter / openmm.unit.second) ** 2, axis=1)).sum() / scipy.constants.k / np.count_nonzero(masses) / 3
+            T += (self.masses * np.sum(v.value_in_unit(openmm.unit.meter / openmm.unit.second) ** 2, axis=1)).sum() / scipy.constants.k / np.count_nonzero(self.masses) / 3
             last_pos = p
 
         positions /= mean_last
@@ -101,9 +110,11 @@ class OpenmmIntegrator(Integrator):
         T /= mean_last
 
         return State(
-            positions=last_pos,
+            positions=last_pos.value_in_unit(self.length_unit),
             mean_positions=positions,
             velocities=velocities,
             types=self.types,
             masses=self.masses,
+            cell=self.cell,
+            origin=self.origin,
         )

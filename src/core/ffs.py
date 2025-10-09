@@ -79,7 +79,7 @@ class Ffs:
 
     def next_phase(self):
         def next_state():
-            if next_state.counter >= len(states):
+            if next_state.counter >= len(self.states):
                 self.states.append(
                     self.disturbance.disturb(
                         self.states[next_state.dcounter]
@@ -103,7 +103,7 @@ class Ffs:
                         self.parameter,
                         self.barriers[self.phase + 1],
                         self.barriers[self.phase],
-                        self.steps
+                        self.steps,
                     ),
                 ))
 

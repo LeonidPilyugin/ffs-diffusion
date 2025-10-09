@@ -1,4 +1,5 @@
 from .core.state import State
+import numpy as np
 
 class Reader:
     def __init__(self, path):
@@ -7,7 +8,8 @@ class Reader:
         self._line = None
 
     def __enter__(self):
-        self.f = open(path, "r")
+        self.f = open(self.path, "r")
+        return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.f.close()
@@ -29,8 +31,8 @@ class Reader:
         return next(self)
 
 def read_box(f):
-    edge = np.zeroes((3, 3))
-    origin = np.zeroes((3,))
+    edge = np.zeros((3, 3))
+    origin = np.zeros((3,))
     if f.line[:16] == "ITEM: BOX BOUNDS":
         for i in range(3):
             f.readline()
@@ -47,18 +49,18 @@ def read_natoms(f):
     return int(f.readline().strip())
 
 def read_atoms(f, natoms):
-    assert "ITEM: ATOMS id type mass x y z vx vy vz" == line.strip()
+    assert "ITEM: ATOMS id type mass x y z vx vy vz" == f.line.strip()
 
     positions = np.empty((natoms,3))
     velocities = np.empty((natoms,3))
-    types = np.empty((natoms,), dtype=np.int)
+    types = np.empty((natoms,), dtype=np.int64)
     masses = np.empty((natoms,))
 
-    for i in range(len(natoms)):
+    for i in range(natoms):
         f.readline()
         id, t, m, x, y, z, vx, vy, vz = f.line.strip().split()
-        types[i] = int(id)
-        masses[i] = float(mass)
+        types[i] = int(t)
+        masses[i] = float(m)
         positions[i,:] = list(map(float, [x, y, z]))
         velocities[i,:] = list(map(float, [vx, vy, vz]))
 
@@ -71,12 +73,13 @@ def read_lammps(path) -> State:
             if line.strip()[:16] == "ITEM: BOX BOUNDS":
                 cell, origin = read_box(f)
             if line.strip() == "ITEM: NUMBER OF ATOMS":
-                natoms = read_natoms()
+                natoms = read_natoms(f)
             if line.strip()[:11] == "ITEM: ATOMS":
-                masses, types, positions, velocities = read_atoms(natoms)
+                masses, types, positions, velocities = read_atoms(f, natoms)
 
     return State(
         positions = positions,
+        mean_positions = None,
         velocities = velocities,
         types = types,
         masses = masses,

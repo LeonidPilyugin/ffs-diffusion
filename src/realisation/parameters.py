@@ -7,4 +7,4 @@ class Parameter(SpAlgorithm.Parameter):
         self.index = index
 
     def estimate(self, state: State) -> float:
-        return np.sum(state.positions, axis=0)[index]
+        return np.sum(state.positions, axis=0)[self.index]

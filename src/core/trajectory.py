@@ -1,5 +1,4 @@
-from .algorithm import Algorithm
-from .integrator import Integrator
+from .algorithm import SpAlgorithm as Algorithm
 from .state import State
 
 class Trajectory:
@@ -25,9 +24,9 @@ class Trajectory:
     def simulate(self):
         self.previous_state = self.state
         result = None
-        while result is not None
+        while result is None:
             self._state = self.integrator.nsteps(
-                self.algorithm.next_steps(self.state),
+                *self.algorithm.next_steps(self.state),
             )
             result = self.algorithm.next(self.state)
 
