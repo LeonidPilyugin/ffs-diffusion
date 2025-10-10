@@ -5,8 +5,8 @@ class Integrator(ABC):
     @abstractmethod
     def nsteps(
         self,
-        n: int = 1,
-        mean_last: int = 1000,
+        n: int,
+        mean_last: int,
     ) -> State:
         pass
 

@@ -7,4 +7,5 @@ class StopCriterion(AbstractStopCriterion):
         self.val = val
 
     def should_continue(self, trajectories: List[Trajectory]) -> bool:
-        return sum([1 if t.result else 0 for t in trajectories]) < self.val
+        sm = sum([1 if t.result else 0 for t in trajectories])
+        return  sm < self.val

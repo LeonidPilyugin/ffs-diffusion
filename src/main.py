@@ -7,6 +7,7 @@ from .realisation import executors, parameters, stopcriteria, disturbances, inte
 from .readlammps import read_lammps
 from pathlib import Path
 import random
+import logging
 
 def load_steps(data):
     return data
@@ -68,6 +69,11 @@ def load_disturbance(data):
 
 def main():
     root = Path(sys.argv[1])
+
+    logging.basicConfig(
+        filename = root / "log",
+        level=logging.INFO,
+    )
 
     data = None
     with open(root / "descriptor.json", "r") as f:

@@ -1,29 +1,27 @@
 LAMMPS (2 Aug 2023 - Update 3)
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
-#!/home/leonid/opt/lammps/build/eam/lmp
-
 units metal
 atom_style atomic
 
 variable lp equal 4.133
-variable bx equal $(4 * sqrt(2))
-variable bx equal 5.6568542494923805819
-variable by equal $(4 * sqrt(2))
-variable by equal 5.6568542494923805819
-variable bz equal 6
+variable bx equal $(5 * sqrt(2))
+variable bx equal 7.0710678118654755053
+variable by equal $(5 * sqrt(2))
+variable by equal 7.0710678118654755053
+variable bz equal 7
 variable temperature equal 900
 variable random_seed equal 4
 variable radius equal 9
-variable offset equal $(-v_lp / sqrt(2))
-variable offset equal -2.9224723266440006952
+variable offset equal 0
+# variable offset equal $(-v_lp / sqrt(2))
 
 region BOX block 0 $(v_lp * v_bx) 0 $(v_lp * v_by) 0 $(v_lp * v_bz)
-region BOX block 0 23.379778613152005562 0 $(v_lp * v_by) 0 $(v_lp * v_bz)
-region BOX block 0 23.379778613152005562 0 23.379778613152005562 0 $(v_lp * v_bz)
-region BOX block 0 23.379778613152005562 0 23.379778613152005562 0 24.798000000000001819
+region BOX block 0 29.224723266440030045 0 $(v_lp * v_by) 0 $(v_lp * v_bz)
+region BOX block 0 29.224723266440030045 0 29.224723266440030045 0 $(v_lp * v_bz)
+region BOX block 0 29.224723266440030045 0 29.224723266440030045 0 28.931000000000000938
 create_box 2 BOX
-Created orthogonal box = (0 0 0) to (23.379779 23.379779 24.798)
+Created orthogonal box = (0 0 0) to (29.224723 29.224723 28.931)
   1 by 1 by 1 MPI processor grid
 
 lattice fcc ${lp}     origin 0.00001 0.00001 0.00001     orient x 1 1 0     orient y -1 1 0     orient z 0 0 1     spacing 1 1 1
@@ -31,25 +29,25 @@ lattice fcc 4.133     origin 0.00001 0.00001 0.00001     orient x 1 1 0     orie
 Lattice spacing in x,y,z = 4.133 4.133 4.133
 
 create_atoms 1 region BOX
-Created 768 atoms
-  using lattice units in orthogonal box = (0 0 0) to (23.379779 23.379779 24.798)
-  create_atoms CPU = 0.000 seconds
+Created 1400 atoms
+  using lattice units in orthogonal box = (0 0 0) to (29.224723 29.224723 28.931)
+  create_atoms CPU = 0.001 seconds
 
 pair_style eam/alloy
 pair_coeff * * AlHe_Men_exp6.eam Al He
 
 region BUBBLE sphere $((xlo + xhi) / 2 + v_offset) $((ylo + yhi) / 2) $((zlo + zhi) / 2) ${radius} units box
-region BUBBLE sphere 8.7674169799320029739 $((ylo + yhi) / 2) $((zlo + zhi) / 2) ${radius} units box
-region BUBBLE sphere 8.7674169799320029739 11.689889306576002781 $((zlo + zhi) / 2) ${radius} units box
-region BUBBLE sphere 8.7674169799320029739 11.689889306576002781 12.399000000000000909 ${radius} units box
-region BUBBLE sphere 8.7674169799320029739 11.689889306576002781 12.399000000000000909 9 units box
+region BUBBLE sphere 14.612361633220015023 $((ylo + yhi) / 2) $((zlo + zhi) / 2) ${radius} units box
+region BUBBLE sphere 14.612361633220015023 14.612361633220015023 $((zlo + zhi) / 2) ${radius} units box
+region BUBBLE sphere 14.612361633220015023 14.612361633220015023 14.465500000000000469 ${radius} units box
+region BUBBLE sphere 14.612361633220015023 14.612361633220015023 14.465500000000000469 9 units box
 delete_atoms region BUBBLE
-Deleted 177 atoms, new total = 591
+Deleted 164 atoms, new total = 1236
 
 velocity all create ${temperature} ${random_seed}
 velocity all create 900 ${random_seed}
 velocity all create 900 4
 
-write_dump all custom ./system2.lammpsdump id type mass x y z vx vy vz
+write_dump all custom ./system.lammpsdump id type mass x y z vx vy vz
 WARNING: Calling write_dump before a full system init. (src/write_dump.cpp:65)
 Total wall time: 0:00:00

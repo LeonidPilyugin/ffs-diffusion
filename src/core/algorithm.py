@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 from .state import State
+import logging
 
 # class Algorithm(ABC):
 #     @abstractmethod
@@ -32,6 +33,7 @@ class SpAlgorithm:
         bot: float,
         steps: int,
     ):
+        self.logger = logging.getLogger(__name__)
         self.parameter = parameter
         self.steps = steps
         self.top = top
@@ -39,7 +41,7 @@ class SpAlgorithm:
 
     def next(self, state: State) -> Optional[bool]:
         now = self.parameter.estimate(state)
-        print(now)
+        logging.info(f"estimated/top/bot: {now}/{self.top}/{self.bot}")
         if now < self.bot:
             return False
         elif now > self.top:

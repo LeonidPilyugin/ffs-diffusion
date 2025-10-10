@@ -2,6 +2,7 @@ from typing import List
 from dataclasses import dataclass
 from pathlib import Path
 import json
+import logging
 from .algorithm import SpAlgorithm
 from .integrator import Integrator
 from .trajectory import Trajectory
@@ -22,6 +23,7 @@ class Ffs:
         disturbance: Disturbance,
         steps: int,
     ):
+        self.logger = logging.getLogger(__name__)
         self.path = path
         self.states = states
         self.trajectories = []
@@ -38,7 +40,10 @@ class Ffs:
         if self.path.joinpath("data.json").exists():
             self.load_checkpoint()
 
+        self.logger.info("Ffs object loaded")
+
     def load_checkpoint(self):
+        self.logger.info("Loading checkpoint")
         with open(self.path / "data.json", "r") as f:
             d = json.load(f)
             self.probabilities = d["probabilities"]
@@ -49,10 +54,11 @@ class Ffs:
 
         ppath = self.path / f"ph{self.phase}"
         self.states = []
-        for filename in ppath.glob("*"):
+        for filename in ppath.glob("*.pkl"):
             self.states.append(State.load(ppath / filename))
 
     def dump_checkpoint(self):
+        self.logger.info("Dumping checkpoint")
         with open(self.path / "data.json", "w") as f:
             json.dump(
                 {
@@ -64,10 +70,10 @@ class Ffs:
                 }, f, indent=2
             )
 
-        ppath = path / f"ph{self.phase}"
+        ppath = self.path / f"ph{self.phase}"
         ppath.mkdir(parents=True, exist_ok=True)
         for i, s in enumerate(self.states):
-            s.dump(ppath / f"st{i}")
+            s.dump(ppath / f"st{i}.pkl")
 
     @property
     def phase(self) -> int:
@@ -78,6 +84,7 @@ class Ffs:
         return self.phase == len(self.probabilities)
 
     def next_phase(self):
+        self.logger.info(f"Starting phase {self.phase}")
         def next_state():
             if next_state.counter >= len(self.states):
                 self.states.append(
@@ -94,6 +101,7 @@ class Ffs:
         next_state.dcounter = 0
 
         while self.stopcrit.should_continue(self.trajectories):
+            self.logger.info("Stop criterion not reached")
             newtrajs = []
 
             for _ in range(self.executor.max_parallel):
@@ -112,15 +120,18 @@ class Ffs:
 
         self.total[self.phase] = len(self.trajectories)
         self.success[self.phase] = sum(
-            [t.result for t in self.trajectories]
+            [1 if t.result else 0 for t in self.trajectories]
         )
         self.probabilities[self.phase] = \
             self.success[self.phase] / self.total[self.phase]
 
     def start(self):
+        self.logger.info("Starting calculations")
         while not self.finished:
             self.next_phase()
             self.states = [
                 t.state for t in self.trajectories if t.result
             ]
+            self.dump_checkpoint()
+        self.logger.info("Calculations finished")
 

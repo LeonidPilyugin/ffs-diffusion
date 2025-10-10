@@ -1,5 +1,6 @@
 from .algorithm import SpAlgorithm as Algorithm
 from .state import State
+import logging
 
 class Trajectory:
     def __init__(
@@ -8,7 +9,7 @@ class Trajectory:
         algorithm: Algorithm,
     ):
         self._state = initial
-        self._discard = None
+        self._result = None
         self._integrator = None
         self.algorithm = algorithm
 
@@ -22,13 +23,16 @@ class Trajectory:
         self._integrator = integrator
 
     def simulate(self):
+        logging.info("Simulating trajectory")
         self.previous_state = self.state
         result = None
         while result is None:
-            self._state = self.integrator.nsteps(
-                *self.algorithm.next_steps(self.state),
-            )
+            run, mean = self.algorithm.next_steps(self.state)
+            logging.info(f"Performing {run} steps with {mean} mean")
+            self._state = self.integrator.nsteps(run, mean)
             result = self.algorithm.next(self.state)
+
+        logging.info(f"Got {result} result")
 
         self._result = result
 
@@ -38,4 +42,4 @@ class Trajectory:
 
     @property
     def result(self):
-        return self._discard
+        return self._result

@@ -12,11 +12,11 @@ class Executor(AbstractExecutor):
         self.mp = len(integrators)
         self.integrators = integrators
 
-    def submit(self, trjs: List[Trajectory]):
-        for i, t in enumerate(trjs):
+    def submit(self, trajectories: List[Trajectory]):
+        for i, t in enumerate(trajectories):
             t.integrator = self.integrators[i]
 
-        ths = [thr.Thread(target=lambda x: x.simulate(), args=(t,)) for t in trjs]
+        ths = [thr.Thread(target=lambda x: x.simulate(), args=(t,)) for t in trajectories]
         for th in ths:
             th.start()
         for th in ths:

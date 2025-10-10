@@ -11,7 +11,7 @@ type = "OpenmmIntegrator"
 
 [ffs.executor.integrator.global.arguments]
 openmm_type = "LangevinIntegrator"
-openmm_arguments = [ 2200.0, 0.01, 0.001 ]
+openmm_arguments = [ 900.0, 0.001, 0.001 ]
 
 [[ffs.executor.integrator.global.arguments.potentials]]
 path = "/home/leonid/potentials/AlHe_Men_exp6_eam_openmm0.xml"
@@ -33,19 +33,21 @@ index = 0
 path = "/home/leonid/systems/ffs/test.lammpsdump"
 radius = 9.0
 seed = 4
-trsh = 0.05
+trsh = 0.5
 
 [ffs.stopcriterion]
 type = "StopCriterion"
 [ffs.stopcriterion.arguments]
-val = 4
+val = 1
 
 [ffs.barriers]
-# 63476 -- 68.649
+# 17038 -- 17517
 barriers = [
-63500,
-63600,
-63700,
+    17100,
+    17200,
+    17300,
+    17400,
+    17500,
 ]
 
 [ffs.disturbance]
@@ -54,5 +56,5 @@ type = "VelocityDisturbance"
 seed = 4
 
 [ffs.steps]
-run = 50000
+run = 10000
 mean = 1000

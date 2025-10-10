@@ -40,7 +40,7 @@ class OpenmmIntegrator(Integrator):
 
         system = openmm.System()
         system.setDefaultPeriodicBoxVectors(
-            self.cell[0], self.cell[1], self.cell[2]
+            self.cell[0] / 10, self.cell[1] / 10, self.cell[2] / 10
         )
         for mass in self.masses:
             system.addParticle(mass)
@@ -66,14 +66,15 @@ class OpenmmIntegrator(Integrator):
         self.cell = state.cell
         self.origin = state.origin
 
-        self.context.setPositions(state.positions)
-        self.context.setVelocities(state.velocities)
+        self.context.setPositions(state.positions / 10)
+        self.context.setVelocities(state.velocities / 10)
 
     def nsteps(
         self,
         n: int,
-        mean_last: int = 1000,
+        mean_last: int,
     ) -> State:
+        print(n)
         assert n >= mean_last
 
         self.context.getIntegrator().step(n - mean_last)

@@ -1,0 +1,10 @@
+[parameter]
+type = "Parameter"
+[parameter.arguments]
+index = 0
+
+[state]
+path = "/home/leonid/systems/ffs/test2.lammpsdump"
+radius = 9.0
+seed = 4
+trsh = 0.05
