@@ -1,5 +1,5 @@
 [ffs]
-id = "simulations.ffs.test"
+id = "simulations.ffs.test9"
 comment = ""
 environment = "ffs"
 
@@ -18,16 +18,73 @@ path = "/home/leonid/potentials/AlHe_Men_exp6_eam_openmm0.xml"
 particles = { 1 = [[ 1 ]], 2 = [[ 2 ]] }
 
 [[ffs.executor.integrator.individual]]
-platform = { name = "HIP", Precision = "mixed", DeviceIndex = "0" }
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "2" }
 
 [[ffs.executor.integrator.individual]]
-platform = { name = "HIP", Precision = "mixed", DeviceIndex = "3" }
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "2" }
 
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "2" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "2" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "2" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "2" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "2" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "2" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "2" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "2" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "1" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "1" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "1" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "1" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "1" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "1" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "1" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "1" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "1" }
+
+[[ffs.executor.integrator.individual]]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "1" }
 
 [ffs.parameter]
-type = "Parameter"
+type = "WSBCParameter"
 [ffs.parameter.arguments]
 index = 0
+reference = "/home/leonid/opt/ffs-diffusion/src/lammps/lattice.lammpsdump"
+trsh = 5.0
+[ffs.parameter.arguments.dbscan]
+eps = 5.0
 
 [ffs.state]
 path = "/home/leonid/systems/ffs/test.lammpsdump"
@@ -35,23 +92,72 @@ radius = 9.0
 seed = 4
 trsh = 0.5
 
+[ffs.flux]
+N = 50
+
 [ffs.stopcriterion]
 type = "StopCriterion"
 [ffs.stopcriterion.arguments]
-val = 1
+val = 50
 
 [ffs.barriers]
-# 17038 -- 17517
-barriers = [
-    17100,
-    17200,
-    17300,
-    17400,
-    17500,
+# 17700 -- 18500
+# 17433 -- 17562
+# 18138 -- 18282
+
+# 14.62 -- 17.50
+# 14.62 -- 14.78
+# 17.36 -- 17.49
+# barriers = [
+#     14.57,
+#     14.62,
+#     14.94,
+#     15.26,
+#     15.58,
+#     15.90,
+#     16.22,
+#     16.54,
+#     16.86,
+#     17.18,
+#     17.50,
+# ]
+
+
+# 14.6 -- 14.7
+# 17.58 -- 17.66
+
+# 14.61 -- 17.53
+
+# 14.6 -- 17.53
+
+right_barriers = [
+    14.7,
+    15.0,
+    15.3,
+    15.6,
+    15.9,
+    16.2,
+    16.5,
+    16.8,
+    17.1,
+    17.5,
+]
+
+left_barriers = [
+    14.5,
+    14.2,
+    13.9,
+    13.6,
+    13.3,
+    13.0,
+    12.7,
+    12.4,
+    12.1,
+    11.8,
 ]
 
 [ffs.disturbance]
-type = "VelocityDisturbance"
+type = "VelocityInvertionDisturbance"
 [ffs.disturbance.arguments]
 seed = 4
 

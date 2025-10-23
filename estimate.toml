@@ -1,10 +1,41 @@
+path = "/home/leonid/simulations/ffs/testtraj/src"
+
+# [parameter]
+# type = "BubbleCenterParameter"
+# [parameter.arguments]
+# index = 0
+# treshold = 4.0
+# gridstep = 0.5
+
 [parameter]
-type = "Parameter"
+type = "WSBCParameter"
 [parameter.arguments]
 index = 0
+reference = "/home/leonid/opt/ffs-diffusion/src/lammps/lattice.lammpsdump"
+trsh = 5.0
+[parameter.arguments.dbscan]
+# min_cluster_size = 50
+eps = 5.0
 
 [state]
-path = "/home/leonid/systems/ffs/test2.lammpsdump"
+path = "/home/leonid/opt/ffs-diffusion/src/lammps/system.lammpsdump"
 radius = 9.0
 seed = 4
 trsh = 0.05
+
+[integrator]
+type = "OpenmmIntegrator"
+[integrator.arguments]
+openmm_type = "LangevinIntegrator"
+openmm_arguments = [ 900.0, 0.001, 0.001 ]
+platform = { name = "CUDA", Precision = "mixed", DeviceIndex = "3" }
+[[integrator.arguments.potentials]]
+path = "/home/leonid/potentials/AlHe_Men_exp6_eam_openmm0.xml"
+particles = { 1 = [[ 1 ]], 2 = [[ 2 ]] }
+
+
+[steps]
+# n = 1000
+# mean_last = 1000
+n = 0
+mean_last = 0

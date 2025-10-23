@@ -19,7 +19,9 @@ class Trajectory:
 
     @integrator.setter
     def integrator(self, integrator):
+        logging.info("Setting state")
         integrator.set_state(self._state)
+        logging.info("State is set")
         self._integrator = integrator
 
     def simulate(self):

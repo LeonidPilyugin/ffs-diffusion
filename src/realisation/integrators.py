@@ -3,6 +3,7 @@ from ..core.state import State
 import openmm
 import scipy
 import numpy as np
+import logging
 
 class OpenmmIntegrator(Integrator):
     def __init__(
@@ -11,7 +12,9 @@ class OpenmmIntegrator(Integrator):
         openmm_arguments,
         potentials,
         platform,
+        index,
     ):
+        self.index = index
         self.integrator = getattr(openmm, openmm_type)(*openmm_arguments)
         self.platform = platform
         self._context = None
@@ -55,7 +58,9 @@ class OpenmmIntegrator(Integrator):
 
         p = openmm.Platform.getPlatformByName(self.platform["name"])
 
-        self._context = openmm.Context(system, self.integrator, p, { "Precision": self.platform["Precision"], "DeviceIndex": self.platform["DeviceIndex"] })
+        platform = self.platform
+        del platform["name"]
+        self._context = openmm.Context(system, self.integrator, p, platform)
         return self._context
 
     def set_state(self, state: State):
@@ -66,7 +71,10 @@ class OpenmmIntegrator(Integrator):
         self.cell = state.cell
         self.origin = state.origin
 
+        i = self.index
+        logging.info(f"{i}: Setting positions")
         self.context.setPositions(state.positions / 10)
+        logging.info(f"{i}: Setting velocities")
         self.context.setVelocities(state.velocities / 10)
 
     def nsteps(
@@ -74,7 +82,6 @@ class OpenmmIntegrator(Integrator):
         n: int,
         mean_last: int,
     ) -> State:
-        print(n)
         assert n >= mean_last
 
         self.context.getIntegrator().step(n - mean_last)
@@ -82,9 +89,11 @@ class OpenmmIntegrator(Integrator):
         positions = np.zeros(self.shape)
         velocities = np.zeros(self.shape)
         u = t = T = 0
-        last_pos = self.context.getState({
+        state = self.context.getState({
             "getPositions": True,
-        }).getPositions(asNumpy=True)
+            "getVelocities": True,
+        })
+        last_pos = state.getPositions(asNumpy=True)
 
         for _ in range(mean_last):
             self.context.getIntegrator().step(1)
@@ -98,17 +107,22 @@ class OpenmmIntegrator(Integrator):
             p = state.getPositions(asNumpy=True)
             v = state.getVelocities(asNumpy=True)
             positions = np.add(positions, p.value_in_unit(self.length_unit))
-            velocities = np.add(velocities, v.value_in_unit(self.velocity_unit))
             u += state.getPotentialEnergy().value_in_unit(self.energy_unit)
             t += state.getKineticEnergy().value_in_unit(self.energy_unit)
-            T += (self.masses * np.sum(v.value_in_unit(openmm.unit.meter / openmm.unit.second) ** 2, axis=1)).sum() / scipy.constants.k / np.count_nonzero(self.masses) / 3
+            T += (self.masses * np.sum(v.value_in_unit(openmm.unit.meter / openmm.unit.second) ** 2, axis=1)).sum()
             last_pos = p
 
+        velocities = state.getVelocities(asNumpy=True).value_in_unit(self.velocity_unit)
         positions /= mean_last
-        velocities /= mean_last
         u /= mean_last
         t /= mean_last
         T /= mean_last
+        T /= 1e3 * scipy.constants.N_A
+        T /= scipy.constants.k * np.count_nonzero(self.masses) * 3
+
+        TT = t * 2 / 3 / np.count_nonzero(self.masses) / scipy.constants.k * 1e3 / scipy.constants.N_A
+
+        logging.info(f"i: {self.index} T = {T} / {TT}")
 
         return State(
             positions=last_pos.value_in_unit(self.length_unit),

@@ -40,7 +40,10 @@ def load_state(data):
     return state
 
 def load_barriers(data):
-    return data["barriers"]
+    return {
+        "left": data["left_barriers"],
+        "right": data["right_barriers"],
+    }
 
 def load_class(module, name, args):
     return getattr(module, name)(**args)
@@ -51,15 +54,15 @@ def load_parameter(data):
 def load_executor(data):
     integrs = []
     gl = data["integrator"]["global"]
-    for i in data["integrator"]["individual"]:
+    for ind, i in enumerate(data["integrator"]["individual"]):
         integrs.append(load_class(integrators, gl["type"],
-            gl["arguments"] | i,
+              gl["arguments"] | i | { "index": ind },
         ))
     return load_class(
         executors,
         data["type"],
         data["arguments"] | { "integrators": integrs }
-    )
+    ), integrs
 
 def load_stopcriterion(data):
     return load_class(stopcriteria, data["type"], data["arguments"])
@@ -67,27 +70,35 @@ def load_stopcriterion(data):
 def load_disturbance(data):
     return load_class(disturbances, data["type"], data["arguments"])
 
+def load_flux(data):
+    return data
+
 def main():
     root = Path(sys.argv[1])
 
     logging.basicConfig(
         filename = root / "log",
         level=logging.INFO,
+        format="%(asctime)s %(message)s",
     )
 
     data = None
     with open(root / "descriptor.json", "r") as f:
         data = json.load(f)
 
+    executor, integrs = load_executor(data["ffs"]["executor"])
+
     Ffs(
         path=root,
-        executor=load_executor(data["ffs"]["executor"]),
+        executor=executor,
         parameter=load_parameter(data["ffs"]["parameter"]),
         states=[load_state(data["ffs"]["state"])],
         stopcrit=load_stopcriterion(data["ffs"]["stopcriterion"]),
         barriers=load_barriers(data["ffs"]["barriers"]),
         disturbance=load_disturbance(data["ffs"]["disturbance"]),
         steps=load_steps(data["ffs"]["steps"]),
+        integrator=integrs[0],
+        flux=load_flux(data["ffs"]["flux"]),
     ).start()
 
 if __name__ == "__main__":

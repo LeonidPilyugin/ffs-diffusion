@@ -10,6 +10,7 @@ from .executor import Executor
 from .stopcrit import StopCriterion
 from .disturbance import Disturbance
 from .state import State
+from .flux import Flux
 
 class Ffs:
     def __init__(
@@ -22,20 +23,28 @@ class Ffs:
         barriers: List[float],
         disturbance: Disturbance,
         steps: int,
+        integrator: Integrator,
+        flux: dict,
     ):
         self.logger = logging.getLogger(__name__)
         self.path = path
         self.states = states
         self.trajectories = []
-        self.probabilities = [None] * (len(barriers) - 1)
-        self.total = [None] * (len(barriers) - 1)
-        self.success = [None] * (len(barriers) - 1)
         self.barriers = barriers
         self.stopcrit = stopcrit
         self.disturbance = disturbance
         self.executor = executor
         self.steps = steps
         self.parameter = parameter
+
+        self.flux = Flux(
+            self.states[0],
+            integrator,
+            flux["N"],
+            path / "flux",
+            parameter,
+            barriers,
+        )
 
         if self.path.joinpath("data.json").exists():
             self.load_checkpoint()
@@ -67,6 +76,11 @@ class Ffs:
                     "success": self.success,
                     "barriers": self.barriers,
                     "steps": self.steps,
+                    "flux": {
+                        "flux": self.flux.flux,
+                        "t": self.flux.t,
+                        "N": self.flux.N,
+                    },
                 }, f, indent=2
             )
 
@@ -100,23 +114,28 @@ class Ffs:
         next_state.counter = 0
         next_state.dcounter = 0
 
+        self.trajectories.clear()
+
         while self.stopcrit.should_continue(self.trajectories):
             self.logger.info("Stop criterion not reached")
             newtrajs = []
 
             for _ in range(self.executor.max_parallel):
+                self.logger.info("Appending trajectory")
                 newtrajs.append(Trajectory(
                     next_state(),
                     SpAlgorithm(
                         self.parameter,
                         self.barriers[self.phase + 1],
-                        self.barriers[self.phase],
+                        # self.barriers[self.phase - 1],
+                        self.barriers[0],
                         self.steps,
                     ),
                 ))
 
             self.executor.submit(newtrajs)
             self.trajectories.extend(newtrajs)
+            self.logger.info("Next stage")
 
         self.total[self.phase] = len(self.trajectories)
         self.success[self.phase] = sum(
@@ -126,6 +145,12 @@ class Ffs:
             self.success[self.phase] / self.total[self.phase]
 
     def start(self):
+        self.flux.compute_flux()
+        self.states = self.flux.states
+        self.barriers = self.barriers[self.flux.direction]
+        self.probabilities = [None] * (len(self.barriers) - 1)
+        self.total = [None] * (len(self.barriers) - 1)
+        self.success = [None] * (len(self.barriers) - 1)
         self.logger.info("Starting calculations")
         while not self.finished:
             self.next_phase()

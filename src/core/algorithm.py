@@ -42,10 +42,17 @@ class SpAlgorithm:
     def next(self, state: State) -> Optional[bool]:
         now = self.parameter.estimate(state)
         logging.info(f"estimated/top/bot: {now}/{self.top}/{self.bot}")
-        if now < self.bot:
-            return False
-        elif now > self.top:
-            return True
+
+        if self.top > self.bot:
+            if now < self.bot:
+                return False
+            elif now > self.top:
+                return True
+        else:
+            if now > self.bot:
+                return False
+            elif now < self.top:
+                return True
         return None
 
     def next_steps(
